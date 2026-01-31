@@ -37,19 +37,3 @@ export const register = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
-
-export const logout = async (req: Request, res: Response) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if(!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    await authService.logoutUser(token);
-
-    return res.status(200).json({ message: 'Logged out successfully' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-}
