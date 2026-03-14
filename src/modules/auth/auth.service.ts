@@ -13,6 +13,7 @@ export const loginUser = async (loginData: LoginData) => {
       where: { email: loginData.email },
     });
 
+
     if (!user) {
       throw new Error('Invalid credentials');
     }
@@ -60,6 +61,12 @@ export const registerUser = async (registerData: RegisterData) => {
         password: hashedPassword,
       },
     })
+
+    if(!newUser) {
+      throw new Error('User creation failed');
+    }
+
+    console.log('User created in database:', newUser);
 
     return {
       id: newUser.id,
