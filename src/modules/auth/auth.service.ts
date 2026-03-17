@@ -27,7 +27,7 @@ export const loginUser = async (loginData: LoginData) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' }
+      { expiresIn: '30d' }
     );
 
     return {
@@ -40,7 +40,8 @@ export const loginUser = async (loginData: LoginData) => {
     };
 
   } catch (error) {
-    throw new Error('Login failed');
+    console.error(error)
+    throw error
   }
 }
 
@@ -62,18 +63,37 @@ export const registerUser = async (registerData: RegisterData) => {
       },
     })
 
-    if(!newUser) {
+    if (!newUser) {
       throw new Error('User creation failed');
     }
-
-    console.log('User created in database:', newUser);
 
     return {
       id: newUser.id,
       name: newUser.name,
       email: newUser.email
     }
-  } catch (error){
+  } catch (error) {
     throw new Error('Registration failed');
+  }
+}
+
+export const getUserById = async (userId: string) => {
+  try {
+    const user = await prisma.user.findUnique({
+      select: {
+        id: true,
+        email: true,
+        name: true
+      },
+      where: { id: userId },
+    });
+
+    if (!user){
+      throw new Error('User not found');
+    }
+
+    return user;
+  } catch (error) {
+    throw new Error('Failed to fetch user');
   }
 }

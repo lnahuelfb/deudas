@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 import { UserLoginSchema, UserRegisterSchema } from '../user/user.schema';
 
 export const AuthRegisterSchema = UserRegisterSchema;

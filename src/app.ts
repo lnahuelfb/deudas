@@ -1,13 +1,19 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import userRouter from './modules/user/user.routes';
 import authRouter from './modules/auth/auth.routes';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/api', (_req, res, next) => {
   return res.json({ message: 'API is working' });
