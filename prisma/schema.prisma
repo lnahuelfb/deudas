@@ -24,39 +24,55 @@ model User {
 }
 
 model Debt {
-  id        String     @id @default(cuid())
-  title     String
-  amount    Float
-  dueDate   DateTime
-  interest  Float?
-  status    DebtStatus @default(PENDING)
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  cardId    String?
-  card      Card?      @relation(fields: [cardId], references: [id])
-  payments  Payment[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
+  id                String     @id @default(cuid())
+  title             String
+  category          String     @default("Otros") 
+  totalAmount       Float     
+  amountPerMonth    Float     
 
-model Payment {
-  id      String   @id @default(cuid())
-  amount  Float
-  date    DateTime @default(now())
-  debtId  String
-  debt    Debt     @relation(fields: [debtId], references: [id])
-  userId  String
-  user    User     @relation(fields: [userId], references: [id])
+  purchaseDate      DateTime   @default(now())
+  isSubscription    Boolean    @default(false)    
+  totalInstallments Int        @default(1)        
+  
+  status            DebtStatus @default(PENDING)
+  
+  userId            String
+  user              User       @relation(fields: [userId], references: [id])
+  
+  cardId            String?
+  card              Card?      @relation(fields: [cardId], references: [id])
+  
+  payments          Payment[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 model Card {
-  id     String  @id @default(cuid())
-  name   String
-  brand  String? // "Visa", "Mastercard", "Naranja", etc.
-  color  String? // Por si querés algo visual en frontend
-  userId String
-  user   User    @relation(fields: [userId], references: [id])
-  debts  Debt[]
+  id          String  @id @default(cuid())
+  name        String  
+  brand       String? 
+  color       String? @default("#7c3aed")
+  
+
+  closingDay  Int?   
+  dueDay      Int?    
+  monthlyLimit Float? 
+  
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+  debts       Debt[]
+}
+
+model Payment {
+  id               String   @id @default(cuid())
+  amount           Float
+  date             DateTime @default(now())
+  installmentNumber Int    
+  
+  debtId           String
+  debt             Debt     @relation(fields: [debtId], references: [id])
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
 }
 
 model RefreshToken {
