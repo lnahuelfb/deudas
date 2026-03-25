@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import { z } from 'zod';
 
 export const UserRegisterSchema = z.object({
   name: z.string().min(2).max(100),
