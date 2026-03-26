@@ -2,12 +2,20 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Routes from './routes';
-
+import { env } from './config/env';
 
 const app = express();
 
+const allowedOrigins = [env.ORIGIN, 'http://localhost:5173'];
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 

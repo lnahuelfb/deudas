@@ -11,77 +11,101 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  password      String
-  name          String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  name     String?
+  role     Role    @default(USER)
+
+  resetToken   String?   @unique
+  resetExpires DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts      Account[]
   debts         Debt[]
   payments      Payment[]
-  cards         Card[]
   refreshTokens RefreshToken[]
 }
 
-model Debt {
-  id                String     @id @default(cuid())
-  title             String
-  category          String     @default("Otros") 
-  totalAmount       Float     
-  amountPerMonth    Float     
+model Account {
+  id    String      @id @default(cuid())
+  name  String 
+  brand String? 
+  color String?     @default("#7c3aed")
+  type  AccountType @default(PERSONAL)
 
-  purchaseDate      DateTime   @default(now())
-  isSubscription    Boolean    @default(false)    
-  totalInstallments Int        @default(1)        
-  
-  status            DebtStatus @default(PENDING)
-  
-  userId            String
-  user              User       @relation(fields: [userId], references: [id])
-  
-  cardId            String?
-  card              Card?      @relation(fields: [cardId], references: [id])
-  
-  payments          Payment[]
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  // Campos específicos para tarjetas de crédito
+  closingDay   Int?
+  dueDay       Int?
+  monthlyLimit Float?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  debts     Debt[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Card {
-  id          String  @id @default(cuid())
-  name        String  
-  brand       String? 
-  color       String? @default("#7c3aed")
-  
+model Debt {
+  id             String @id @default(cuid())
+  title          String
+  category       String @default("Otros")
+  totalAmount    Float
+  amountPerMonth Float 
 
-  closingDay  Int?   
-  dueDay      Int?    
-  monthlyLimit Float? 
-  
-  userId      String
-  user        User    @relation(fields: [userId], references: [id])
-  debts       Debt[]
+  purchaseDate      DateTime   @default(now())
+  isSubscription    Boolean    @default(false)
+  totalInstallments Int        @default(1)
+  status            DebtStatus @default(PENDING)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  payments  Payment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Payment {
-  id               String   @id @default(cuid())
-  amount           Float
-  date             DateTime @default(now())
-  installmentNumber Int    
-  
-  debtId           String
-  debt             Debt     @relation(fields: [debtId], references: [id])
-  userId           String
-  user             User     @relation(fields: [userId], references: [id])
+  id                String   @id @default(cuid())
+  amount            Float
+  date              DateTime @default(now())
+  installmentNumber Int
+
+  debtId String
+  debt   Debt   @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RefreshToken {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   revoked   Boolean  @default(false)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AccountType {
+  CREDIT_CARD
+  PERSONAL 
+  BANK
 }
 
 enum DebtStatus {
