@@ -38,7 +38,7 @@ export const getDebts = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Account ID is required' });
     }
 
-    if(typeof accountId !== 'string') {
+    if (typeof accountId !== 'string') {
       return res.status(400).json({ error: 'Account ID must be a string' });
     }
 
@@ -69,7 +69,7 @@ export const updateDebt = async (req: Request, res: Response) => {
 
     const debtData = debtSchema.safeParse(req.body);
 
-    if (!debtData.success) { 
+    if (!debtData.success) {
       return res.status(400).json({
         error: 'Invalid debt data',
         details: debtData.error
@@ -91,24 +91,28 @@ export const updateDebt = async (req: Request, res: Response) => {
 
 export const deleteDebt = async (req: Request, res: Response) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
+    const userId = verifyUser(req);
 
-    if (!id) {
-      return res.status(400).json({ error: 'Debt ID is required' });
-    }
+    if (!id) return res.status(400).json({ error: 'ID requerido' });
 
     if (typeof id !== 'string') {
       return res.status(400).json({ error: 'Debt ID must be a string' });
     }
 
-    await debtService.deleteDebt(id);
+    const result = await debtService.deleteDebt(id, userId);
 
     return res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to delete debt' });
+  } catch (error: any) {
+    console.error(`[DELETE_DEBT_ERROR]: ${error.message}`);
+
+    if (error.message === 'DEBT_NOT_FOUND') {
+      return res.status(404).json({ error: 'La deuda no existe o no tenés permiso' });
+    }
+
+    return res.status(500).json({ error: 'Error interno al eliminar' });
   }
-}
+};
 
 export const markDebtAsPaid = async (req: Request, res: Response) => {
   try {

@@ -11,6 +11,7 @@ export const createDebt = async (debtData: Debt, userId: string) => {
         totalInstallments: debtData.totalInstallments,
         amountPerMonth: debtData.amountPerMonth,
         isSubscription: debtData.isSubscription,
+        initialPaidInstallments: debtData.initialPaidInstallments,
         accountId: debtData.accountId,
         userId
       }
@@ -31,14 +32,28 @@ export const getDebtsByAccountId = async (accountId: string) => {
   try {
     const debts = await prisma.debt.findMany({
       where: { accountId },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: { payments: true }
     });
 
-    if (!debts) {
+    const enrichedDebts = debts.map(debt => {
+      const paidInstallments = debt.initialPaidInstallments + (debt.payments?.length || 0);
+      const remainingAmount = debt.totalAmount
+        ? debt.totalAmount - (debt.amountPerMonth * (paidInstallments))
+        : undefined;
+
+      return {
+        ...debt,
+        paidInstallments,
+        remainingAmount
+      };
+    });
+
+    if (!enrichedDebts) {
       throw new Error('No debts found for this account');
     }
 
-    return debts;
+    return enrichedDebts;
   } catch (error) {
     console.error(error);
     throw new Error('Failed to fetch debts');
@@ -70,16 +85,27 @@ export const updateDebt = async (debtId: string, debtData: Debt) => {
   }
 }
 
-export const deleteDebt = async (debtId: string) => {
-  try {
-    await prisma.debt.delete({
+export const deleteDebt = async (debtId: string, userId: string) => {
+  const debt = await prisma.debt.findFirst({
+    where: { id: debtId, userId: userId }
+  });
+
+  if (!debt) {
+    throw new Error('DEBT_NOT_FOUND');
+  }
+
+  return await prisma.$transaction(async (tx) => {
+    await tx.payment.deleteMany({
+      where: { debtId: debtId }
+    });
+
+    await tx.debt.delete({
       where: { id: debtId }
     });
-  } catch (error) {
-    console.error(error);
-    throw new Error('Debt deletion failed');
-  }
-}
+
+    return { success: true };
+  });
+};
 
 export const markDebtAsPaid = async (debtId: string) => {
   try {

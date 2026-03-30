@@ -50,26 +50,35 @@ model Account {
 }
 
 model Debt {
-  id             String @id @default(cuid())
-  title          String
-  category       String @default("Otros")
-  totalAmount    Float
-  amountPerMonth Float 
+  id                String     @id @default(cuid())
+  title             String
+  category          String     @default("Otros")
+  
 
-  purchaseDate      DateTime   @default(now())
-  isSubscription    Boolean    @default(false)
-  totalInstallments Int        @default(1)
+  totalAmount       Float?   
+  totalInstallments Int        @default(1) 
+
+  initialPaidInstallments Int      @default(0)
+  
+  amountPerMonth    Float     
+  
+
+  isSubscription    Boolean    @default(false) 
+  startDate         DateTime   @default(now())
+  endDate           DateTime? 
+  
   status            DebtStatus @default(PENDING)
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  accountId String?
-  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
-
-  payments  Payment[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  userId            String
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId         String?
+  account           Account?   @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  
+  payments          Payment[] 
+  
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 }
 
 model Payment {
