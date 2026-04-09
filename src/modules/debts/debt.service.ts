@@ -107,6 +107,58 @@ export const deleteDebt = async (debtId: string, userId: string) => {
   });
 };
 
+export const getAllDebtsByUserId = async (userId: string) => {
+  try {
+    const debts = await prisma.debt.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: { payments: true }
+    });
+
+    const totalToPayThisMonth = debts.reduce((total, debt) => {
+      if(debt.status === 'PAID') return total;
+      if(debt.isSubscription) return total + debt.amountPerMonth;
+      if(!debt.totalAmount) return total + debt.amountPerMonth;
+
+      const paidInstallments = debt.initialPaidInstallments + (debt.payments?.length || 0);
+      const remainingAmount = debt.totalAmount
+        ? debt.totalAmount - (debt.amountPerMonth * (paidInstallments))
+        : 0;
+
+      const inThisMonth = total + (remainingAmount > 0 ? debt.amountPerMonth : 0);
+
+      return inThisMonth;
+    }, 0);
+
+
+    const totalToPay = debts.reduce((total, debt) => {
+      if(debt.status === 'PAID') return total;
+      if(debt.isSubscription) return total;
+
+      const paidInstallments = debt.initialPaidInstallments + (debt.payments?.length || 0);
+      const remainingAmount = debt.totalAmount
+        ? debt.totalAmount - (debt.amountPerMonth * (paidInstallments))
+        : 0;
+
+      return total + remainingAmount;
+    }, 0);
+
+    const totalSubscriptions = debts.reduce((total, debt) => {
+      if(debt.status === 'PAID') return total;
+      if(debt.isSubscription) return total + debt.amountPerMonth;
+      return total;
+    }, 0);
+
+    console.log("Total to pay this month:", totalToPayThisMonth);
+    console.log("Total to pay overall:", totalToPay);
+    console.log("Total subscriptions:", totalSubscriptions);
+  
+    return { debts, totalToPayThisMonth, totalToPay, totalSubscriptions };
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to fetch debts');
+  }
+}
 export const markDebtAsPaid = async (debtId: string) => {
   try {
     await prisma.debt.update({

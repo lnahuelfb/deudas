@@ -5,6 +5,7 @@ const router = Router();
 
 router.post("/", debtController.addDebt);
 router.get("/", debtController.getDebts);
+router.get("/all", debtController.getAllDebts);
 router.put("/:id", debtController.updateDebt);
 router.delete("/:id", debtController.deleteDebt);
 router.post("/:id/pay", debtController.markDebtAsPaid);
