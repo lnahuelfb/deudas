@@ -159,6 +159,7 @@ export const getAllDebtsByUserId = async (userId: string) => {
     throw new Error('Failed to fetch debts');
   }
 }
+
 export const markDebtAsPaid = async (debtId: string) => {
   try {
     await prisma.debt.update({

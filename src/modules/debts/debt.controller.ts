@@ -117,6 +117,7 @@ export const deleteDebt = async (req: Request, res: Response) => {
 export const getAllDebts = async (req: Request, res: Response) => {
   try {
     const userId = verifyUser(req);
+    console.log(userId)
     const debts = await debtService.getAllDebtsByUserId(userId);
 
     return res.status(200).json(debts);
