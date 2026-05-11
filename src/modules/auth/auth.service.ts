@@ -1,6 +1,8 @@
 import prisma from "@/config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "@/lib/mail";
 
 type LoginData = {
   email: string;
@@ -27,7 +29,7 @@ export const loginUser = async (loginData: LoginData) => {
     const token = jwt.sign(
       { userId: user.id },
       process.env.JWT_SECRET as string,
-      { expiresIn: '30d' }
+      { expiresIn: '7d' }
     );
 
     return {
@@ -64,7 +66,7 @@ export const registerUser = async (registerData: RegisterData) => {
     })
 
     if (!newUser) {
-      throw new Error('User creation failed');
+      throw new Error();
     }
 
     return {
@@ -72,8 +74,9 @@ export const registerUser = async (registerData: RegisterData) => {
       name: newUser.name,
       email: newUser.email
     }
-  } catch (error) {
-    throw new Error('Registration failed');
+  } catch (error: any) {
+    console.error(error);
+    throw error;
   }
 }
 
@@ -83,12 +86,13 @@ export const getUserById = async (userId: string) => {
       select: {
         id: true,
         email: true,
-        name: true
+        name: true,
+        monthlySpendingLimit: true
       },
       where: { id: userId },
     });
 
-    if (!user){
+    if (!user) {
       throw new Error('User not found');
     }
 
@@ -97,3 +101,48 @@ export const getUserById = async (userId: string) => {
     throw new Error('Failed to fetch user');
   }
 }
+
+export const forgotPassword = async (email: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    return;
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 3600000); // 1 hora
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetToken: token,
+      resetExpires: expires,
+    },
+  });
+
+  await sendPasswordResetEmail(email, token);
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      resetToken: token,
+      resetExpires: { gt: new Date() },
+    },
+  });
+
+  if (!user) {
+    throw new Error("INVALID_OR_EXPIRED_TOKEN");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      resetToken: null,
+      resetExpires: null,
+    },
+  });
+};

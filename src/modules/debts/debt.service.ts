@@ -28,15 +28,15 @@ export const createDebt = async (debtData: Debt, userId: string) => {
   }
 }
 
-export const getDebtsByAccountId = async (accountId: string) => {
+export const getDebtsByAccountId = async (accountId: string, userId: string) => {
   try {
     const debts = await prisma.debt.findMany({
-      where: { accountId },
+      where: { accountId, userId },
       orderBy: { createdAt: 'desc' },
       include: { payments: true }
     });
 
-    const enrichedDebts = debts.map(debt => {
+    const enrichedDebts = debts.map((debt: any) => {
       const paidInstallments = debt.initialPaidInstallments + (debt.payments?.length || 0);
       const remainingAmount = debt.totalAmount
         ? debt.totalAmount - (debt.amountPerMonth * (paidInstallments))
@@ -49,10 +49,6 @@ export const getDebtsByAccountId = async (accountId: string) => {
       };
     });
 
-    if (!enrichedDebts) {
-      throw new Error('No debts found for this account');
-    }
-
     return enrichedDebts;
   } catch (error) {
     console.error(error);
@@ -60,10 +56,10 @@ export const getDebtsByAccountId = async (accountId: string) => {
   }
 }
 
-export const updateDebt = async (debtId: string, debtData: Debt) => {
+export const updateDebt = async (debtId: string, debtData: Debt, userId: string) => {
   try {
-    const updatedDebt = await prisma.debt.update({
-      where: { id: debtId },
+    const updatedDebt = await prisma.debt.updateMany({
+      where: { id: debtId, userId },
       data: {
         title: debtData.title,
         category: debtData.category,
@@ -74,11 +70,15 @@ export const updateDebt = async (debtId: string, debtData: Debt) => {
       }
     });
 
-    if (!updatedDebt) {
-      throw new Error('Debt update failed');
+    if (updatedDebt.count === 0) {
+      throw new Error('DEBT_NOT_FOUND');
     }
 
-    return updatedDebt;
+    // Retornamos el objeto verificado por userId
+    return await prisma.debt.findFirst({ 
+      where: { id: debtId, userId } 
+    });
+
   } catch (error) {
     console.error(error);
     throw new Error('Debt update failed');
@@ -86,6 +86,7 @@ export const updateDebt = async (debtId: string, debtData: Debt) => {
 }
 
 export const deleteDebt = async (debtId: string, userId: string) => {
+  // Verificamos propiedad antes de iniciar la transacción
   const debt = await prisma.debt.findFirst({
     where: { id: debtId, userId: userId }
   });
@@ -94,13 +95,15 @@ export const deleteDebt = async (debtId: string, userId: string) => {
     throw new Error('DEBT_NOT_FOUND');
   }
 
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: any) => {
+    // Borramos pagos asociados asegurando que sean del usuario
     await tx.payment.deleteMany({
-      where: { debtId: debtId }
+      where: { debtId: debtId, userId: userId }
     });
 
-    await tx.debt.delete({
-      where: { id: debtId }
+    // Borramos la deuda asegurando propiedad
+    await tx.debt.deleteMany({
+      where: { id: debtId, userId: userId }
     });
 
     return { success: true };
@@ -115,7 +118,7 @@ export const getAllDebtsByUserId = async (userId: string) => {
       include: { payments: true }
     });
 
-    const totalToPayThisMonth = debts.reduce((total, debt) => {
+    const totalToPayThisMonth = debts.reduce((total: number, debt: any) => {
       if(debt.status === 'PAID') return total;
       if(debt.isSubscription) return total + debt.amountPerMonth;
       if(!debt.totalAmount) return total + debt.amountPerMonth;
@@ -131,7 +134,7 @@ export const getAllDebtsByUserId = async (userId: string) => {
     }, 0);
 
 
-    const totalToPay = debts.reduce((total, debt) => {
+    const totalToPay = debts.reduce((total: number, debt: any) => {
       if(debt.status === 'PAID') return total;
       if(debt.isSubscription) return total;
 
@@ -143,15 +146,11 @@ export const getAllDebtsByUserId = async (userId: string) => {
       return total + remainingAmount;
     }, 0);
 
-    const totalSubscriptions = debts.reduce((total, debt) => {
+    const totalSubscriptions = debts.reduce((total: number, debt: any) => {
       if(debt.status === 'PAID') return total;
       if(debt.isSubscription) return total + debt.amountPerMonth;
       return total;
     }, 0);
-
-    console.log("Total to pay this month:", totalToPayThisMonth);
-    console.log("Total to pay overall:", totalToPay);
-    console.log("Total subscriptions:", totalSubscriptions);
   
     return { debts, totalToPayThisMonth, totalToPay, totalSubscriptions };
   } catch (error) {
@@ -160,12 +159,16 @@ export const getAllDebtsByUserId = async (userId: string) => {
   }
 }
 
-export const markDebtAsPaid = async (debtId: string) => {
+export const markDebtAsPaid = async (debtId: string, userId: string) => {
   try {
-    await prisma.debt.update({
-      where: { id: debtId },
+    const result = await prisma.debt.updateMany({
+      where: { id: debtId, userId },
       data: { status: 'PAID' }
     });
+
+    if (result.count === 0) {
+      throw new Error('DEBT_NOT_FOUND');
+    }
   } catch (error) {
     console.error(error);
     throw new Error('Failed to mark debt as paid');

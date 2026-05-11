@@ -8,6 +8,6 @@ router.get("/", debtController.getDebts);
 router.get("/all", debtController.getAllDebts);
 router.put("/:id", debtController.updateDebt);
 router.delete("/:id", debtController.deleteDebt);
-router.post("/:id/pay", debtController.markDebtAsPaid);
+router.patch("/:id/pay", debtController.markDebtAsPaid);
 
 export default router;

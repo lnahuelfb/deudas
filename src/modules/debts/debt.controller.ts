@@ -33,6 +33,7 @@ export const addDebt = async (req: Request, res: Response) => {
 export const getDebts = async (req: Request, res: Response) => {
   try {
     const { accountId } = req.query;
+    const userId = verifyUser(req);
 
     if (!accountId) {
       return res.status(400).json({ error: 'Account ID is required' });
@@ -42,7 +43,7 @@ export const getDebts = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Account ID must be a string' });
     }
 
-    const debts = await debtService.getDebtsByAccountId(accountId);
+    const debts = await debtService.getDebtsByAccountId(accountId, userId);
 
     if (!debts) {
       return res.status(404).json({ error: 'No debts found for this account' });
@@ -57,14 +58,11 @@ export const getDebts = async (req: Request, res: Response) => {
 
 export const updateDebt = async (req: Request, res: Response) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
+    const userId = verifyUser(req);
 
     if (!id) {
       return res.status(400).json({ error: 'Debt ID is required' });
-    }
-
-    if (typeof id !== 'string') {
-      return res.status(400).json({ error: 'Debt ID must be a string' });
     }
 
     const debtData = debtSchema.safeParse(req.body);
@@ -76,15 +74,14 @@ export const updateDebt = async (req: Request, res: Response) => {
       });
     }
 
-    const updatedDebt = await debtService.updateDebt(id, debtData.data);
-
-    if (!updatedDebt) {
-      return res.status(404).json({ error: 'Debt not found' });
-    }
+    const updatedDebt = await debtService.updateDebt(id, debtData.data, userId);
 
     return res.status(200).json(updatedDebt);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+    if (error.message === 'DEBT_NOT_FOUND') {
+      return res.status(404).json({ error: 'Deuda no encontrada o sin permisos' });
+    }
     return res.status(500).json({ error: 'Failed to update debt' });
   }
 }
@@ -129,21 +126,21 @@ export const getAllDebts = async (req: Request, res: Response) => {
 
 export const markDebtAsPaid = async (req: Request, res: Response) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
+    const userId = verifyUser(req);
 
     if (!id) {
       return res.status(400).json({ error: 'Debt ID is required' });
     }
 
-    if (typeof id !== 'string') {
-      return res.status(400).json({ error: 'Debt ID must be a string' });
-    }
-
-    await debtService.markDebtAsPaid(id);
+    await debtService.markDebtAsPaid(id, userId);
 
     return res.status(200).json({ message: 'Debt marked as paid' });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
+    if (error.message === 'DEBT_NOT_FOUND') {
+      return res.status(404).json({ error: 'Deuda no encontrada o sin permisos' });
+    }
     return res.status(500).json({ error: 'Failed to mark debt as paid' });
   }
 }

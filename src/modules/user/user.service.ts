@@ -11,7 +11,7 @@ export const findUserById = async (id: string) => {
 
 export const updateUser = async (
   id: string,
-  userData: { name?: string; email?: string; password?: string }
+  userData: { name?: string; email?: string; password?: string; monthlySpendingLimit?: number }
 ) => {
   try {
     if (userData.password) {

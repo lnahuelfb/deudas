@@ -3,8 +3,12 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Routes from './routes';
 import { env } from './config/env';
+import { apiLimiter } from './middlewares/rateLimit';
 
 const app = express();
+
+// Seguridad: Limitar peticiones globales
+app.use(apiLimiter);
 
 const allowedOrigins = [env.ORIGIN, 'http://localhost:5173'];
 

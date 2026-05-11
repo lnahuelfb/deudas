@@ -26,6 +26,27 @@ export const addAccount = async (req: Request, res: Response) => {
   }
 }
 
+export const markAccountAsPay = async (req: Request, res: Response) => {
+  try {
+    if (!req.user || typeof req.user === 'string' || !req.user.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { userId } = req.user;
+
+    const result = await accountService.markAccountAsPaid(id, userId);
+
+    return res.status(200).json(result);
+  } catch (err: any) {
+    console.error('Error occurred while marking account as paid:', err);
+    if (err.message === 'ACCOUNT_NOT_FOUND') {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 export const getAccount = async (req: Request, res: Response) => {
   try {
     if (!req.user || typeof req.user === 'string' || !req.user.userId) {

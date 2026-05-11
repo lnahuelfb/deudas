@@ -28,24 +28,23 @@ export const getAccountsByUserId = async (userId: string) => {
         debts: {
           where: {
             status: 'PENDING', 
+            userId // Doble verificación de seguridad
           },
           include: {
-            payments: true 
+            payments: {
+              where: { userId } // Aseguramos que los pagos cargados sean del usuario
+            }
           }
         }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    const summary = accounts.map(account => {
+    const summary = accounts.map((account: any) => {
       let totalThisMonth = 0;
 
-      account.debts.forEach(debt => {
-        if (debt.isSubscription) {
-          totalThisMonth += debt.amountPerMonth;
-        } else {
-          totalThisMonth += debt.amountPerMonth;
-        }
+      account.debts.forEach((debt: any) => {
+        totalThisMonth += debt.amountPerMonth;
       });
 
       return {
@@ -61,7 +60,6 @@ export const getAccountsByUserId = async (userId: string) => {
     throw new Error('Error al obtener el resumen de cuentas');
   }
 }
-
 
 export const getAccountById = async (accountId: string, userId: string) => {
   try {
@@ -96,7 +94,9 @@ export const updateAccount = async (accountId: string, accountData: Account, use
       throw new Error('Account not found or user unauthorized');
     }
 
-    return updatedAccount;
+    return await prisma.account.findFirst({
+      where: { id: accountId, userId }
+    });
   } catch (error) {
     throw new Error('Failed to update account');
   }
@@ -104,6 +104,7 @@ export const updateAccount = async (accountId: string, accountData: Account, use
 
 export const deleteAccount = async (accountId: string, userId: string) => {
   try {
+    // El borrado masivo asegura que solo se borre si pertenece al usuario
     const deletedAccount = await prisma.account.deleteMany({
       where: { id: accountId, userId },
     });
@@ -117,3 +118,43 @@ export const deleteAccount = async (accountId: string, userId: string) => {
     throw new Error('Failed to delete account');
   }
 }
+
+export const markAccountAsPaid = async (accountId: string, userId: string) => {
+  const account = await prisma.account.findFirst({
+    where: { id: accountId, userId },
+    include: {
+      debts: {
+        where: { status: 'PENDING', userId },
+        include: { payments: { where: { userId } } }
+      }
+    }
+  });
+
+  if (!account) {
+    throw new Error('ACCOUNT_NOT_FOUND');
+  }
+
+  return await prisma.$transaction(async (tx: any) => {
+    for (const debt of account.debts) {
+      const paidInstallments = debt.initialPaidInstallments + (debt.payments?.length || 0);
+      
+      await tx.payment.create({
+        data: {
+          amount: debt.amountPerMonth,
+          installmentNumber: paidInstallments + 1,
+          debtId: debt.id,
+          userId: userId
+        }
+      });
+
+      if (!debt.isSubscription && (paidInstallments + 1) >= debt.totalInstallments) {
+        await tx.debt.updateMany({
+          where: { id: debt.id, userId }, // Usamos updateMany para mayor seguridad IDOR
+          data: { status: 'PAID' }
+        });
+      }
+    }
+
+    return { success: true, debtsProcessed: account.debts.length };
+  });
+};

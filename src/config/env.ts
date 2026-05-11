@@ -15,7 +15,9 @@ if (process.env.ORIGIN) {
 export const env = {
   DATABASE_URL: process.env.DATABASE_URL || "",
   JWT_SECRET: process.env.JWT_SECRET || "",
-  ORIGIN: process.env.ORIGIN || "http://localhost:5173"
+  ORIGIN: process.env.ORIGIN || "http://localhost:5173",
+  SMTP_USER: process.env.SMTP_USER || "",
+  SMTP_PASS: process.env.SMTP_PASS || ""
 };
 
 if (!env.DATABASE_URL) {

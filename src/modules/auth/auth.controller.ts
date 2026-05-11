@@ -17,9 +17,9 @@ export const login = async (req: Request, res: Response) => {
 
     res.cookie("token", data.token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-      maxAge: 1000 * 60 * 60
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 7 días
     })
 
     return res.status(200).json(data);
@@ -71,11 +71,47 @@ export const getMe = async (req: Request, res: Response) => {
     return res.status(200).json({
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      monthlySpendingLimit: user.monthlySpendingLimit
     });
   } catch (err) {
     console.error('Error occurred while fetching user data:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    await authService.forgotPassword(email);
+
+    return res.status(200).json({ message: 'Si el correo existe, se ha enviado un enlace de recuperación' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error al procesar la solicitud' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    await authService.resetPassword(token, newPassword);
+
+    return res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+  } catch (error: any) {
+    console.error(error);
+    if (error.message === 'INVALID_OR_EXPIRED_TOKEN') {
+      return res.status(400).json({ error: 'El enlace es inválido o ha expirado' });
+    }
+    return res.status(500).json({ error: 'Error al restablecer la contraseña' });
+  }
+};
 
