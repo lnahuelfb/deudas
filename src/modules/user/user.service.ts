@@ -1,4 +1,4 @@
-import prisma from '@/config/prisma';
+import prisma from '../../config/prisma';
 import bcrypt from 'bcrypt';
 
 export const findUserById = async (id: string) => {

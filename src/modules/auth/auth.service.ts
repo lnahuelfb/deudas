@@ -1,8 +1,8 @@
-import prisma from "@/config/prisma";
+import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/mail";
+import { sendPasswordResetEmail } from "../../lib/mail";
 
 type LoginData = {
   email: string;

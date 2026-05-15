@@ -1,5 +1,5 @@
 import type { Debt } from "./debt.schema";
-import prisma from "@/config/prisma";
+import prisma from "../../config/prisma";
 
 export const createDebt = async (debtData: Debt, userId: string) => {
   try {

@@ -1,5 +1,5 @@
 import type { Account } from "./account.schema";
-import prisma from "@/config/prisma";
+import prisma from "../../config/prisma";
 
 export const createAccount = async (accountData: Account, userId: string) => {
   const newAccount = await prisma.account.create({
