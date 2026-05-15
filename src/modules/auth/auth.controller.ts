@@ -17,8 +17,8 @@ export const login = async (req: Request, res: Response) => {
 
     res.cookie("token", data.token, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true, // Requerido para sameSite: 'none' en producción (HTTPS)
       maxAge: 1000 * 60 * 60 * 24 * 7 // 7 días
     })
 
@@ -31,7 +31,11 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true
+    });
     return res.status(200).json({ message: 'Logged out successfully' });
   } catch (err) {
     console.error('Error occurred while logging out:', err);
