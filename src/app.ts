@@ -7,10 +7,9 @@ import { apiLimiter } from './middlewares/rateLimit';
 
 const app = express();
 
-// Seguridad: Limitar peticiones globales
 app.use(apiLimiter);
 
-const allowedOrigins = [env.ORIGIN, 'http://localhost:5173', 'http://localhost:4173'];
+const allowedOrigins = ['https://deudas-ashen.vercel.app', 'http://localhost:5173', 'http://localhost:4173'];
 
 app.use(cors({
   origin: (origin, callback) => {
