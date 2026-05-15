@@ -61,8 +61,8 @@ export const updateDebt = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = verifyUser(req);
 
-    if (!id) {
-      return res.status(400).json({ error: 'Debt ID is required' });
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Debt ID is required and must be a string' });
     }
 
     const debtData = debtSchema.safeParse(req.body);
@@ -129,8 +129,8 @@ export const markDebtAsPaid = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = verifyUser(req);
 
-    if (!id) {
-      return res.status(400).json({ error: 'Debt ID is required' });
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Debt ID is required and must be a string' });
     }
 
     await debtService.markDebtAsPaid(id, userId);

@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { authMiddleware } from "../../middlewares/auth";
+import { authLimiter } from "../../middlewares/rateLimit";
+import * as authController from "./auth.controller";
+const router = Router();
+router.post("/login", authLimiter, authController.login);
+router.post("/logout", authMiddleware, authController.logout);
+router.post("/register", authLimiter, authController.register);
+router.get("/me", authMiddleware, authController.getMe);
+router.post("/forgot-password", authLimiter, authController.forgotPassword);
+router.post("/reset-password", authLimiter, authController.resetPassword);
+export default router;

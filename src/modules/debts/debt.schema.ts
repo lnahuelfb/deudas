@@ -13,6 +13,12 @@ export const debtSchema = z.object({
     date: z.string().refine((date) => !isNaN(Date.parse(date)), "La fecha debe ser una cadena de texto con formato de fecha válida")
   })).optional(),
   accountId: z.string().min(1, "La cuenta es requerida")
+}).refine((data) => {
+  if (data.isSubscription) return true;
+  return data.initialPaidInstallments <= data.totalInstallments;
+}, {
+  message: "Las cuotas pagadas no pueden superar el total de cuotas",
+  path: ["initialPaidInstallments"]
 });
 
 export type Debt = z.infer<typeof debtSchema>;

@@ -73,7 +73,7 @@ async function main() {
       totalAmount: 300000,
       amountPerMonth: 100000,
       totalInstallments: 3,
-      purchaseDate: new Date('2026-02-15'),
+      startDate: new Date('2026-02-15'),
       status: DebtStatus.PENDING,
       userId: demo.id,
       accountId: visaSantander.id,
