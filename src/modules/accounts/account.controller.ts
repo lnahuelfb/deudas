@@ -33,13 +33,15 @@ export const markAccountAsPay = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
+    const { debtIds, paymentDate } = req.body;
     const { userId } = req.user;
 
     if (typeof id !== 'string') {
       return res.status(400).json({ error: 'Account ID must be a string' });
     }
 
-    const result = await accountService.markAccountAsPaid(id, userId);
+    const parsedPaymentDate = paymentDate ? new Date(paymentDate) : undefined;
+    const result = await accountService.markAccountAsPaid(id, userId, debtIds, parsedPaymentDate);
 
     return res.status(200).json(result);
   } catch (err: any) {
