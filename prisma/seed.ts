@@ -46,66 +46,227 @@ async function main() {
     data: {
       name: 'Visa Santander',
       brand: 'Visa',
-      color: '#ec1c24',
+      color: '#7c3aed',
       type: AccountType.CREDIT_CARD,
       closingDay: 25,
       dueDay: 5,
-      monthlyLimit: 500000,
+      monthlyLimit: 800000,
       userId: demo.id,
     },
   })
 
-  const kioscoPepe = await prisma.account.create({
+  const mastercardGalicia = await prisma.account.create({
     data: {
-      name: 'Kiosco El Flaco',
-      color: '#fbbf24',
+      name: 'Mastercard Galicia',
+      brand: 'Mastercard',
+      color: '#db2777',
+      type: AccountType.CREDIT_CARD,
+      closingDay: 18,
+      dueDay: 28,
+      monthlyLimit: 600000,
+      userId: demo.id,
+    },
+  })
+
+  const amexMacro = await prisma.account.create({
+    data: {
+      name: 'Amex Macro',
+      brand: 'American Express',
+      color: '#1e293b',
+      type: AccountType.CREDIT_CARD,
+      closingDay: 20,
+      dueDay: 2,
+      monthlyLimit: 750000,
+      userId: demo.id,
+    },
+  })
+
+  const naranjaX = await prisma.account.create({
+    data: {
+      name: 'Naranja X',
+      brand: 'Naranja',
+      color: '#d97706',
+      type: AccountType.CREDIT_CARD,
+      closingDay: 24,
+      dueDay: 10,
+      monthlyLimit: 400000,
+      userId: demo.id,
+    },
+  })
+
+  const mercadoPago = await prisma.account.create({
+    data: {
+      name: 'Mercado Pago Prepaga',
+      brand: 'Mercado Pago',
+      color: '#2563eb',
+      type: AccountType.CREDIT_CARD,
+      closingDay: 30,
+      dueDay: 5,
+      monthlyLimit: 300000,
+      userId: demo.id,
+    },
+  })
+
+  const expensasCompartidas = await prisma.account.create({
+    data: {
+      name: 'Gastos Compartidos (Mati)',
+      color: '#059669',
       type: AccountType.PERSONAL,
       userId: demo.id,
     },
   })
 
   // 5. Crear Deudas de ejemplo
-  // Una deuda en cuotas (La clásica compra de tecnología)
+  // Visa Santander: Un monitor en cuotas
   const debtCuotas = await prisma.debt.create({
     data: {
-      title: 'Monitor 144hz',
+      title: 'Monitor Gamer 144hz',
       category: 'Tecnología',
       totalAmount: 300000,
       amountPerMonth: 100000,
       totalInstallments: 3,
-      startDate: new Date('2026-02-15'),
+      startDate: new Date('2026-04-10'),
       status: DebtStatus.PENDING,
       userId: demo.id,
       accountId: visaSantander.id,
     },
   })
 
-  // Una suscripción (Netflix)
+  // Visa Santander: Netflix
   await prisma.debt.create({
     data: {
-      title: 'Netflix',
-      category: 'Entretenimiento',
-      totalAmount: 8000,
-      amountPerMonth: 8000,
+      title: 'Netflix Standard',
+      category: 'Suscripción',
+      totalAmount: 9500,
+      amountPerMonth: 9500,
       isSubscription: true,
       totalInstallments: 1,
+      startDate: new Date('2026-05-01'),
       status: DebtStatus.PENDING,
       userId: demo.id,
       accountId: visaSantander.id,
     },
   })
 
-  // Una deuda personal (Lo que le debés al kiosquero)
+  // Visa Santander: Compra Supermercado
   await prisma.debt.create({
     data: {
-      title: 'Cerveza y puchos',
-      category: 'Varios',
-      totalAmount: 1500,
-      amountPerMonth: 1500,
+      title: 'Compra Mensual Coto',
+      category: 'Supermercado',
+      totalAmount: 78000,
+      amountPerMonth: 78000,
       totalInstallments: 1,
+      startDate: new Date('2026-05-15'),
       status: DebtStatus.PENDING,
       userId: demo.id,
-      accountId: kioscoPepe.id,
+      accountId: visaSantander.id,
+    },
+  })
+
+  // Mastercard Galicia: Zapatillas en cuotas
+  await prisma.debt.create({
+    data: {
+      title: 'Zapatillas Deportivas',
+      category: 'Ropa',
+      totalAmount: 120000,
+      amountPerMonth: 40000,
+      totalInstallments: 3,
+      startDate: new Date('2026-05-02'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: mastercardGalicia.id,
+    },
+  })
+
+  // Mastercard Galicia: Spotify
+  await prisma.debt.create({
+    data: {
+      title: 'Spotify Familiar',
+      category: 'Suscripción',
+      totalAmount: 3400,
+      amountPerMonth: 3400,
+      isSubscription: true,
+      totalInstallments: 1,
+      startDate: new Date('2026-05-05'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: mastercardGalicia.id,
+    },
+  })
+
+  // Expensas Compartidas (Deuda Personal): Expensas departamento
+  await prisma.debt.create({
+    data: {
+      title: 'Expensas Mayo (Mitad)',
+      category: 'Varios',
+      totalAmount: 45000,
+      amountPerMonth: 45000,
+      totalInstallments: 1,
+      startDate: new Date('2026-05-10'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: expensasCompartidas.id,
+    },
+  })
+
+  // Expensas Compartidas (Deuda Personal): Cuentas de luz/gas
+  await prisma.debt.create({
+    data: {
+      title: 'Mitad Factura Edesur',
+      category: 'Varios',
+      totalAmount: 12500,
+      amountPerMonth: 12500,
+      totalInstallments: 1,
+      startDate: new Date('2026-05-12'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: expensasCompartidas.id,
+    },
+  })
+
+  // Amex Macro: Pasajes a Bariloche
+  await prisma.debt.create({
+    data: {
+      title: 'Pasajes a Bariloche',
+      category: 'Ocio',
+      totalAmount: 240000,
+      amountPerMonth: 80000,
+      totalInstallments: 3,
+      startDate: new Date('2026-05-01'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: amexMacro.id,
+    },
+  })
+
+  // Naranja X: Celular Nuevo
+  await prisma.debt.create({
+    data: {
+      title: 'Samsung Galaxy A54',
+      category: 'Tecnología',
+      totalAmount: 180000,
+      amountPerMonth: 30000,
+      totalInstallments: 6,
+      startDate: new Date('2026-03-05'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: naranjaX.id,
+    },
+  })
+
+  // Mercado Pago Prepaga: Suscripción Disney+
+  await prisma.debt.create({
+    data: {
+      title: 'Combo Disney+ & Star+',
+      category: 'Suscripción',
+      totalAmount: 4500,
+      amountPerMonth: 4500,
+      isSubscription: true,
+      totalInstallments: 1,
+      startDate: new Date('2026-05-01'),
+      status: DebtStatus.PENDING,
+      userId: demo.id,
+      accountId: mercadoPago.id,
     },
   })
 
@@ -116,7 +277,8 @@ async function main() {
       installmentNumber: 1,
       debtId: debtCuotas.id,
       userId: demo.id,
-      date: new Date('2026-03-05'),
+      date: new Date('2026-05-05'),
+      createdAt: new Date('2026-05-05'),
     },
   })
 
