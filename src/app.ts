@@ -8,7 +8,7 @@ const app = express();
 
 app.use(apiLimiter);
 
-const allowedOrigins = ['https://deudas-ashen.vercel.app', 'http://localhost:5173', 'http://localhost:4173'];
+const allowedOrigins = ['https://deuda-app.vercel.app', 'http://localhost:5173', 'http://localhost:4173'];
 
 app.use(cors({
   origin: (origin, callback) => {
