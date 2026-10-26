@@ -1,5 +1,10 @@
 # DeudApp - Backend API ⚙️🔒
 
+> **DeudApp** back end: an API built with Node.js, Express and TypeScript, using PostgreSQL through Prisma. It handles cards, debts, subscriptions and authentication (JWT in HTTP-only cookies), validates input with Zod, and runs on Vercel serverless functions.
+> The React front end is in [deudas-frontend](https://github.com/lnahuelfb/deudas-frontend). Spanish documentation below.
+
+---
+
 Servicio backend de alto rendimiento diseñado para la plataforma DeudApp. Maneja la lógica de negocio de tarjetas, deudas, suscripciones y autenticación, sirviendo como fuente de la verdad para la base de datos PostgreSQL.
 
 ## 🚀 Tecnologías Principales
